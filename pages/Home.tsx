@@ -11,6 +11,7 @@ interface HomeProps {
 
 const Home: React.FC<HomeProps> = ({ onSelectGame, user, gamesStatus }) => {
   const [showBonusToast, setShowBonusToast] = useState(false);
+  const [showLinkToast, setShowLinkToast] = useState(false);
   const [payoutTicker, setPayoutTicker] = useState(1245000);
 
   useEffect(() => {
@@ -21,13 +22,33 @@ const Home: React.FC<HomeProps> = ({ onSelectGame, user, gamesStatus }) => {
     }
   }, [user.bonusBalance]);
 
-  // Simulated live payout ticker
   useEffect(() => {
     const interval = setInterval(() => {
       setPayoutTicker(prev => prev + Math.floor(Math.random() * 500));
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/join?ref=${user.referralCode}`;
+    const shareData = {
+      title: 'Join ROYAL WIN',
+      text: `Hey! Use my code ${user.referralCode} to get a ₹20 welcome bonus on ROYAL WIN!`,
+      url: shareUrl,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        setShowLinkToast(true);
+        setTimeout(() => setShowLinkToast(false), 3000);
+      }
+    } catch (err) {
+      console.error('Error sharing:', err);
+    }
+  };
 
   const games = [
     { id: 'chicken', name: 'Chicken Road', icon: '🐔', path: GameView.CHICKEN_ROAD, color: 'group-hover:text-amber-400', category: 'High Stakes' },
@@ -55,7 +76,7 @@ const Home: React.FC<HomeProps> = ({ onSelectGame, user, gamesStatus }) => {
 
   return (
     <div className="p-4 space-y-6 relative">
-      {/* Welcome Bonus Toast */}
+      {/* Toast Notifications */}
       {showBonusToast && (
         <div className="fixed top-20 left-4 right-4 z-[100] animate-bounce-in">
           <div className="bg-slate-900/90 backdrop-blur-md border border-yellow-500/50 p-4 rounded-2xl shadow-2xl flex items-center gap-4 relative overflow-hidden">
@@ -70,12 +91,17 @@ const Home: React.FC<HomeProps> = ({ onSelectGame, user, gamesStatus }) => {
         </div>
       )}
 
-      {/* Hero Banner - Gold Bullion Style */}
+      {showLinkToast && (
+        <div className="fixed bottom-24 left-4 right-4 z-[100] animate-slide-up">
+          <div className="bg-green-500 text-slate-950 p-3 rounded-xl shadow-2xl flex items-center justify-center gap-2 font-black uppercase text-[10px] tracking-widest">
+            <span>✅</span> Link Copied to Clipboard
+          </div>
+        </div>
+      )}
+
+      {/* Hero Banner */}
       <div className="relative h-48 rounded-[2rem] overflow-hidden bg-gradient-to-br from-yellow-600 via-amber-400 to-yellow-700 shadow-2xl shadow-amber-500/20 group">
-        
-        {/* Shine Effect */}
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
-        
         <div className="absolute inset-0 p-6 flex flex-col justify-center z-20">
           <div className="bg-black/20 backdrop-blur-sm self-start px-3 py-1 rounded-full border border-black/10 mb-2">
             <span className="text-[9px] font-black text-slate-900 uppercase tracking-[0.2em]">Premium Access</span>
@@ -93,8 +119,6 @@ const Home: React.FC<HomeProps> = ({ onSelectGame, user, gamesStatus }) => {
             Enter Arena
           </button>
         </div>
-
-        {/* Decorative Elements */}
         <div className="absolute right-[-20px] bottom-[-20px] text-9xl opacity-25 select-none grayscale-0 brightness-110 drop-shadow-lg rotate-12 transition-transform group-hover:rotate-0 duration-500">👑</div>
         <div className="absolute right-4 top-4 w-16 h-16 bg-white/20 rounded-full blur-2xl"></div>
       </div>
@@ -139,9 +163,7 @@ const Home: React.FC<HomeProps> = ({ onSelectGame, user, gamesStatus }) => {
                   }
                 `}
               >
-                {/* Background Glow */}
                 <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${isActive ? 'from-yellow-500/5' : 'from-slate-500/5'} to-transparent rounded-full blur-2xl -mr-10 -mt-10 group-hover:opacity-100 transition-opacity`}></div>
-
                 <div className="flex justify-between items-start relative z-10">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-2xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm transition-colors ${game.color} ${isActive ? 'group-hover:bg-slate-800' : ''}`}>
                     {game.icon}
@@ -150,22 +172,18 @@ const Home: React.FC<HomeProps> = ({ onSelectGame, user, gamesStatus }) => {
                     <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
                   )}
                 </div>
-
                 <div className="text-left relative z-10">
                   <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-0.5">{game.category}</span>
                   <span className={`text-sm font-black uppercase tracking-tight text-slate-200 group-hover:text-white transition-colors`}>
                     {game.name}
                   </span>
                 </div>
-
-                {/* Overlays */}
                 {status?.isMaintenance && (
                   <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2 border border-yellow-500/20 rounded-[1.5rem]">
                     <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-500">⚠️</div>
                     <span className="text-[9px] font-black text-yellow-500 uppercase tracking-widest">Maintenance</span>
                   </div>
                 )}
-                
                 {!status?.isActive && !status?.isMaintenance && (
                   <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-[2px] flex items-center justify-center border border-slate-800 rounded-[1.5rem]">
                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-slate-900 px-3 py-1 rounded-full border border-slate-800">Soon</span>
@@ -187,7 +205,10 @@ const Home: React.FC<HomeProps> = ({ onSelectGame, user, gamesStatus }) => {
             <h4 className="text-xs font-black text-white uppercase tracking-widest">Royal Affiliate</h4>
             <p className="text-[10px] text-slate-400 font-bold mt-0.5">Invite elites. Earn 10% Lifetime Royalty.</p>
           </div>
-          <button className="bg-slate-800 hover:bg-slate-700 text-yellow-500 px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors border border-slate-700">
+          <button 
+            onClick={handleShare}
+            className="bg-slate-800 hover:bg-slate-700 text-yellow-500 px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors border border-slate-700"
+          >
             Link
           </button>
         </div>
