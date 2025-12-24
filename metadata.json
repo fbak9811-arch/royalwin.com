@@ -1,0 +1,7 @@
+{
+  "name": "ROYAL WIN - Pro Gaming Platform",
+  "description": "A high-performance real-money gaming platform featuring Chicken Road, Colour Prediction, and more with integrated UPI wallet systems.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
